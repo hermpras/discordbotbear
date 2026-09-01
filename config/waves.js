@@ -1,6 +1,6 @@
 // Fill in the Discord role IDs for each wave. Add/remove entries based on how many waves you have.
 module.exports = {
-  MAX_PER_WAVE: 250,
+  MAX_PER_WAVE: 500,
   ROLES: {
     1: process.env.WAVE_1_ROLE_ID,
     2: process.env.WAVE_2_ROLE_ID,

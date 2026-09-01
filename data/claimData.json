@@ -1,11 +1,10 @@
 {
-  "waves": {
-    "1": {
-      "count": 1,
-      "claimedUsers": [
-        "865519069128949761"
-      ]
-    }
-  },
-  "activeWave": 1
+  "waves": {},
+  "activeWave": 1,
+  "panelChannelId": null,
+  "panelMessageId": null,
+  "early": {
+    "count": 0,
+    "claimedUsers": []
+  }
 }

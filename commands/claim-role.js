@@ -1,17 +1,19 @@
 const {
   SlashCommandBuilder,
+  PermissionFlagsBits,
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
 } = require("discord.js");
-const { readData, getWaveData } = require("../utils/claimStore");
-const { MAX_PER_WAVE } = require("../config/waves");
+const { readData, getEarlyData } = require("../utils/claimStore");
+const { EARLY_MAX } = require("../config/early");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("claim-role")
-    .setDescription("Re-post the claim panel for the currently active wave"),
+    .setDescription("Post the static Early role claim panel")
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
     const channelId = process.env.CLAIM_ROLE_CHANNEL_ID;
@@ -24,28 +26,24 @@ module.exports = {
     }
 
     const data = readData();
-    const activeWave = data.activeWave;
+    const earlyData = getEarlyData(data);
 
-    if (!activeWave) {
-      return interaction.reply({
-        content:
-          "❌ There's no active wave right now. Use `/open-wave` first to start one.",
-        ephemeral: true,
-      });
-    }
-
-    const waveData = getWaveData(data, activeWave);
-    const remaining = MAX_PER_WAVE - waveData.count;
+    const slotsLine =
+      EARLY_MAX !== null
+        ? `🟢 **Slots remaining: ${EARLY_MAX - earlyData.count}/${EARLY_MAX}**`
+        : "🟢 **Open to all early community members**";
 
     const embed = new EmbedBuilder()
-      .setTitle(`🎟️ CLAIM YOUR ROLE — WAVE ${activeWave}`)
+      .setTitle("🎟️ CLAIM YOUR ROLE — EARLY")
       .setDescription(
         [
           "Want to be part of the early HoodBear community?",
           "",
-          `Click the button below to claim your **Wave ${activeWave}** role.`,
+          "Click the button below to claim your **Early** role.",
           "",
-          `🟢 **Slots remaining: ${remaining}/${MAX_PER_WAVE}**`,
+          "⚠️ Claiming this role means you won't be able to claim a wave role later — Early and wave roles are mutually exclusive.",
+          "",
+          slotsLine,
         ].join("\n"),
       )
       .setColor("#273524")
@@ -53,8 +51,8 @@ module.exports = {
 
     const button = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId("claim_wave_role")
-        .setLabel(`Claim Wave ${activeWave}`)
+        .setCustomId("claim_early_role")
+        .setLabel("Claim Early Role")
         .setEmoji("🟢")
         .setStyle(ButtonStyle.Success),
     );
@@ -65,7 +63,7 @@ module.exports = {
     });
 
     await interaction.reply({
-      content: `✅ Wave ${activeWave} panel re-posted.`,
+      content: "✅ Early role panel posted.",
       ephemeral: true,
     });
   },

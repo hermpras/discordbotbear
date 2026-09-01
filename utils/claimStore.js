@@ -9,6 +9,7 @@ const defaultData = {
   panelChannelId: null,
   panelMessageId: null,
   waves: {},
+  early: { count: 0, claimedUsers: [] },
 };
 
 function readData() {
@@ -34,6 +35,11 @@ function readData() {
     // 4. Pastikan objek 'waves' selalu ada walau file JSON sebelumnya berisi `{}`
     if (!parsedData.waves || typeof parsedData.waves !== "object") {
       parsedData.waves = {};
+    }
+
+    // 5. Pastikan objek 'early' selalu ada (migrasi otomatis dari data lama)
+    if (!parsedData.early || typeof parsedData.early !== "object") {
+      parsedData.early = { count: 0, claimedUsers: [] };
     }
 
     return parsedData;
@@ -67,6 +73,14 @@ function getWaveData(data, wave) {
   return data.waves[wave];
 }
 
+function getEarlyData(data) {
+  if (!data || typeof data !== "object") return { count: 0, claimedUsers: [] };
+  if (!data.early || typeof data.early !== "object") {
+    data.early = { count: 0, claimedUsers: [] };
+  }
+  return data.early;
+}
+
 // Check whether a user has already claimed a role in ANY wave (not just the active one)
 function hasClaimedAnyWave(data, userId) {
   if (!data || !data.waves) return false;
@@ -75,4 +89,24 @@ function hasClaimedAnyWave(data, userId) {
   );
 }
 
-module.exports = { readData, writeData, getWaveData, hasClaimedAnyWave };
+// Check whether a user has already claimed the Early role
+function hasClaimedEarly(data, userId) {
+  if (!data || !data.early) return false;
+  return !!data.early.claimedUsers?.includes(userId);
+}
+
+// Check whether a user has claimed ANYTHING at all — Early role OR any wave role.
+// One person = one role total, across Early and all waves combined.
+function hasClaimedAny(data, userId) {
+  return hasClaimedEarly(data, userId) || hasClaimedAnyWave(data, userId);
+}
+
+module.exports = {
+  readData,
+  writeData,
+  getWaveData,
+  getEarlyData,
+  hasClaimedAnyWave,
+  hasClaimedEarly,
+  hasClaimedAny,
+};

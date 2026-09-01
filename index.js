@@ -11,6 +11,7 @@ const roleInfoCommand = require("./commands/role-info");
 const howToBearListCommand = require("./commands/how-to-bearlist");
 
 const { handleClaimWaveRole } = require("./handlers/claimWaveRole");
+const { handleClaimEarlyRole } = require("./handlers/claimEarlyRole");
 const { handleTicketInteraction } = require("./handlers/ticketHandler");
 
 const client = new Client({
@@ -109,6 +110,31 @@ client.on(Events.InteractionCreate, async (interaction) => {
           await handleClaimWaveRole(interaction);
         } catch (error) {
           console.error("❌ Error claiming wave role:", error);
+
+          if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({
+              content: "❌ Something went wrong while claiming the role.",
+              ephemeral: true,
+            });
+          }
+        }
+
+        return;
+      }
+
+      if (interaction.customId === "claim_early_role") {
+        try {
+          if (interaction.channelId !== process.env.CLAIM_ROLE_CHANNEL_ID) {
+            return interaction.reply({
+              content:
+                "❌ This button can only be used in the claim-role channel.",
+              ephemeral: true,
+            });
+          }
+
+          await handleClaimEarlyRole(interaction);
+        } catch (error) {
+          console.error("❌ Error claiming early role:", error);
 
           if (!interaction.replied && !interaction.deferred) {
             await interaction.reply({
