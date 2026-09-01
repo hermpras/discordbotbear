@@ -35,7 +35,7 @@ module.exports = {
           '**The Hood Bear Team will NEVER DM you first, NEVER ask for your private information, and NEVER send you links to "fix" your account.**',
         ].join("\n"),
       )
-      .setColor("#273524")
+      .setColor("#c8ff00")
       .setFooter({ text: "Hood Bear • Community Rules" });
 
     await interaction.reply({

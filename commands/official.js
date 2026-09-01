@@ -38,7 +38,7 @@ module.exports = {
           "We will never ask for your seed phrase or private key.",
         ].join("\n"),
       )
-      .setColor("#273524")
+      .setColor("#c8ff00")
       .setFooter({ text: "HOODBEAR • Official Links" });
 
     const buttons = new ActionRowBuilder().addComponents(

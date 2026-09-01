@@ -7,6 +7,8 @@ const rulesCommand = require("./commands/rules");
 const claimRoleCommand = require("./commands/claim-role");
 const openWaveCommand = require("./commands/open-wave");
 const ticketCommand = require("./commands/ticket");
+const roleInfoCommand = require("./commands/role-info");
+const howToBearListCommand = require("./commands/how-to-bearlist");
 
 const commands = [
   officialCommand.data.toJSON(),
@@ -14,6 +16,8 @@ const commands = [
   claimRoleCommand.data.toJSON(),
   openWaveCommand.data.toJSON(),
   ticketCommand.data.toJSON(),
+  roleInfoCommand.data.toJSON(),
+  howToBearListCommand.data.toJSON(),
 ];
 
 const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);

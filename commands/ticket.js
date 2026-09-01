@@ -19,7 +19,7 @@ module.exports = {
         "Need help? Select a category below to open a private ticket.\n\n" +
           "Please provide as much information as possible so our team can help you quickly.",
       )
-      .setColor(0x7132f5)
+      .setColor(0xc8ff00)
       .setFooter({
         text: "HoodBear Support",
       });

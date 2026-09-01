@@ -7,6 +7,8 @@ const rulesCommand = require("./commands/rules");
 const claimRoleCommand = require("./commands/claim-role");
 const openWaveCommand = require("./commands/open-wave");
 const ticketCommand = require("./commands/ticket");
+const roleInfoCommand = require("./commands/role-info");
+const howToBearListCommand = require("./commands/how-to-bearlist");
 
 const { handleClaimWaveRole } = require("./handlers/claimWaveRole");
 const { handleTicketInteraction } = require("./handlers/ticketHandler");
@@ -22,6 +24,8 @@ client.commands.set(rulesCommand.data.name, rulesCommand);
 client.commands.set(claimRoleCommand.data.name, claimRoleCommand);
 client.commands.set(openWaveCommand.data.name, openWaveCommand);
 client.commands.set(ticketCommand.data.name, ticketCommand);
+client.commands.set(roleInfoCommand.data.name, roleInfoCommand);
+client.commands.set(howToBearListCommand.data.name, howToBearListCommand);
 
 client.once(Events.ClientReady, async (readyClient) => {
   console.log(`🐻 HoodBear Bot online as ${readyClient.user.tag}`);
