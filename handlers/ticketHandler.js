@@ -60,14 +60,45 @@ async function handleTicketInteraction(interaction) {
         .slice(0, 90);
 
     // =========================
+    // BOT MEMBER
+    // =========================
+
+    const botMember = interaction.guild.members.me;
+
+    if (!botMember) {
+      await interaction.editReply({
+        content: "❌ I could not identify my bot member in this server.",
+      });
+
+      return true;
+    }
+
+    // =========================
     // CHANNEL PERMISSIONS
     // =========================
 
     const permissionOverwrites = [
+      // Everyone cannot see tickets
       {
         id: interaction.guild.id,
         deny: [PermissionFlagsBits.ViewChannel],
       },
+
+      // Bot needs full access to manage the ticket channel
+      {
+        id: botMember.id,
+        allow: [
+          PermissionFlagsBits.ViewChannel,
+          PermissionFlagsBits.SendMessages,
+          PermissionFlagsBits.ReadMessageHistory,
+          PermissionFlagsBits.EmbedLinks,
+          PermissionFlagsBits.AttachFiles,
+          PermissionFlagsBits.ManageChannels,
+          PermissionFlagsBits.ManageMessages,
+        ],
+      },
+
+      // Ticket owner
       {
         id: interaction.user.id,
         allow: [
@@ -99,13 +130,26 @@ async function handleTicketInteraction(interaction) {
     // CREATE CHANNEL
     // =========================
 
-    const ticketChannel = await interaction.guild.channels.create({
-      name: channelName,
-      type: ChannelType.GuildText,
-      parent: CATEGORY_ID || null,
-      topic: `ticket:${interaction.user.id}`,
-      permissionOverwrites,
-    });
+    let ticketChannel;
+
+    try {
+      ticketChannel = await interaction.guild.channels.create({
+        name: channelName,
+        type: ChannelType.GuildText,
+        parent: CATEGORY_ID || null,
+        topic: `ticket:${interaction.user.id}`,
+        permissionOverwrites,
+      });
+    } catch (error) {
+      console.error("❌ Failed to create ticket:", error);
+
+      await interaction.editReply({
+        content:
+          "❌ I couldn't create the ticket channel. Please check my channel permissions.",
+      });
+
+      return true;
+    }
 
     // =========================
     // TICKET EMBED
@@ -120,7 +164,9 @@ async function handleTicketInteraction(interaction) {
           "A member of the HoodBear team will assist you shortly.",
       )
       .setColor(0x7132f5)
-      .setFooter({ text: "HoodBear Support" })
+      .setFooter({
+        text: "HoodBear Support",
+      })
       .setTimestamp();
 
     // =========================
@@ -145,13 +191,24 @@ async function handleTicketInteraction(interaction) {
     // SEND TICKET MESSAGE
     // =========================
 
-    await ticketChannel.send({
-      content: `${interaction.user} ${
-        SUPPORT_ROLE_ID ? `<@&${SUPPORT_ROLE_ID}>` : ""
-      }`,
-      embeds: [embed],
-      components: [buttons],
-    });
+    try {
+      await ticketChannel.send({
+        content: `${interaction.user} ${
+          SUPPORT_ROLE_ID ? `<@&${SUPPORT_ROLE_ID}>` : ""
+        }`,
+        embeds: [embed],
+        components: [buttons],
+      });
+    } catch (error) {
+      console.error("❌ Failed to send ticket message:", error);
+
+      await interaction.editReply({
+        content:
+          "⚠️ Ticket channel was created, but I couldn't send the ticket message.",
+      });
+
+      return true;
+    }
 
     await interaction.editReply({
       content: `✅ Your ticket has been created: ${ticketChannel}`,
@@ -180,17 +237,25 @@ async function handleTicketInteraction(interaction) {
 
     await interaction.deferReply();
 
-    // Hide ticket from the original owner
-    await channel.permissionOverwrites.edit(ownerId, {
-      ViewChannel: false,
-      SendMessages: false,
-    });
+    try {
+      // Hide ticket from the original owner
+      await channel.permissionOverwrites.edit(ownerId, {
+        ViewChannel: false,
+        SendMessages: false,
+      });
 
-    await interaction.editReply({
-      content:
-        "🔒 **Ticket closed.**\n\n" +
-        "A staff member can delete this ticket when it is no longer needed.",
-    });
+      await interaction.editReply({
+        content:
+          "🔒 **Ticket closed.**\n\n" +
+          "A staff member can delete this ticket when it is no longer needed.",
+      });
+    } catch (error) {
+      console.error("❌ Failed to close ticket:", error);
+
+      await interaction.editReply({
+        content: "❌ Failed to close the ticket.",
+      });
+    }
 
     return true;
   }
@@ -238,32 +303,40 @@ async function handleTicketInteraction(interaction) {
       : null;
 
     if (logChannel) {
-      const logEmbed = new EmbedBuilder()
-        .setTitle("🗑️ Ticket Deleted")
-        .addFields(
-          {
-            name: "Ticket",
-            value: channel.name,
-            inline: true,
-          },
-          {
-            name: "Deleted By",
-            value: `${interaction.user}`,
-            inline: true,
-          },
-        )
-        .setColor(0xed4245)
-        .setTimestamp();
+      try {
+        const logEmbed = new EmbedBuilder()
+          .setTitle("🗑️ Ticket Deleted")
+          .addFields(
+            {
+              name: "Ticket",
+              value: channel.name,
+              inline: true,
+            },
+            {
+              name: "Deleted By",
+              value: `${interaction.user}`,
+              inline: true,
+            },
+          )
+          .setColor(0xed4245)
+          .setTimestamp();
 
-      await logChannel.send({
-        embeds: [logEmbed],
-      });
+        await logChannel.send({
+          embeds: [logEmbed],
+        });
+      } catch (error) {
+        console.error("❌ Failed to send ticket log:", error);
+      }
     }
 
-    // Delete channel after short delay
+    // =========================
+    // DELETE CHANNEL
+    // =========================
+
     setTimeout(async () => {
       try {
-        await channel.delete();
+        await channel.delete("HoodBear ticket deleted");
+        console.log(`🗑️ Ticket deleted: ${channel.name}`);
       } catch (error) {
         console.error("❌ Failed to delete ticket:", error);
       }
