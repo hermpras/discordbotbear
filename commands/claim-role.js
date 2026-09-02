@@ -1,13 +1,7 @@
-const {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-} = require("discord.js");
-const { readData, getEarlyData } = require("../utils/claimStore");
+const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const { readData, writeData, getEarlyData } = require("../utils/claimStore");
 const { EARLY_MAX } = require("../config/early");
+const { buildEarlyEmbed, buildEarlyButtonRow } = require("../utils/panelEmbed");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -28,39 +22,18 @@ module.exports = {
     const data = readData();
     const earlyData = getEarlyData(data);
 
-    const slotsLine =
-      EARLY_MAX !== null
-        ? `🟢 **Slots remaining: ${EARLY_MAX - earlyData.count}/${EARLY_MAX}**`
-        : "🟢 **Open to all early community members**";
+    const embed = buildEarlyEmbed(earlyData, EARLY_MAX);
+    const button = buildEarlyButtonRow();
 
-    const embed = new EmbedBuilder()
-      .setTitle("🎟️ CLAIM YOUR ROLE — EARLY")
-      .setDescription(
-        [
-          "Want to be part of the early HoodBear community?",
-          "",
-          "Click the button below to claim your **Early** role.",
-          "",
-          "⚠️ Claiming this role means you won't be able to claim a wave role later — Early and wave roles are mutually exclusive.",
-          "",
-          slotsLine,
-        ].join("\n"),
-      )
-      .setColor("#273524")
-      .setFooter({ text: "HoodBear • Community Roles" });
-
-    const button = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId("claim_early_role")
-        .setLabel("Claim Early Role")
-        .setEmoji("🟢")
-        .setStyle(ButtonStyle.Success),
-    );
-
-    await interaction.channel.send({
+    const sentMessage = await interaction.channel.send({
       embeds: [embed],
       components: [button],
     });
+
+    // Remember which message is the live panel, so future claims can edit it
+    earlyData.panelChannelId = sentMessage.channelId;
+    earlyData.panelMessageId = sentMessage.id;
+    writeData(data);
 
     await interaction.reply({
       content: "✅ Early role panel posted.",

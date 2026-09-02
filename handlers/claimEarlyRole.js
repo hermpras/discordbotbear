@@ -5,6 +5,7 @@ const {
   hasClaimedAny,
 } = require("../utils/claimStore");
 const { EARLY_ROLE_ID, EARLY_MAX } = require("../config/early");
+const { buildEarlyEmbed, refreshPanelMessage } = require("../utils/panelEmbed");
 
 const MIN_ACCOUNT_AGE_DAYS = 7;
 const MIN_MEMBER_AGE_HOURS = 0;
@@ -86,6 +87,16 @@ async function handleClaimEarlyRole(interaction) {
     earlyData.count += 1;
     earlyData.claimedUsers.push(interaction.user.id);
     writeData(data);
+
+    // Live-update the panel message in the channel so the counter isn't stale
+    const freshEmbed = buildEarlyEmbed(earlyData, EARLY_MAX);
+    await refreshPanelMessage(
+      interaction.client,
+      earlyData.panelChannelId,
+      earlyData.panelMessageId,
+      freshEmbed,
+      interaction.message ? interaction.message.components : [],
+    );
 
     const progress =
       EARLY_MAX !== null ? ` (${earlyData.count}/${EARLY_MAX})` : "";

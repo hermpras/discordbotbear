@@ -74,10 +74,18 @@ function getWaveData(data, wave) {
 }
 
 function getEarlyData(data) {
-  if (!data || typeof data !== "object") return { count: 0, claimedUsers: [] };
+  if (!data || typeof data !== "object")
+    return {
+      count: 0,
+      claimedUsers: [],
+      panelChannelId: null,
+      panelMessageId: null,
+    };
   if (!data.early || typeof data.early !== "object") {
     data.early = { count: 0, claimedUsers: [] };
   }
+  if (data.early.panelChannelId === undefined) data.early.panelChannelId = null;
+  if (data.early.panelMessageId === undefined) data.early.panelMessageId = null;
   return data.early;
 }
 

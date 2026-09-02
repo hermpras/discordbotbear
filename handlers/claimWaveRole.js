@@ -5,6 +5,7 @@ const {
   hasClaimedAny,
 } = require("../utils/claimStore");
 const { ROLES, MAX_PER_WAVE } = require("../config/waves");
+const { buildWaveEmbed, refreshPanelMessage } = require("../utils/panelEmbed");
 
 const MIN_ACCOUNT_AGE_DAYS = 7;
 const MIN_MEMBER_AGE_HOURS = 2;
@@ -87,6 +88,16 @@ async function handleClaimWaveRole(interaction) {
     waveData.count += 1;
     waveData.claimedUsers.push(interaction.user.id);
     writeData(data);
+
+    // Live-update the panel message in the channel so the counter isn't stale
+    const freshEmbed = buildWaveEmbed(activeWave, waveData, MAX_PER_WAVE);
+    await refreshPanelMessage(
+      interaction.client,
+      data.panelChannelId,
+      data.panelMessageId,
+      freshEmbed,
+      interaction.message ? interaction.message.components : [],
+    );
 
     return interaction.reply({
       content: `✅ Wave ${activeWave} role claimed successfully! (${waveData.count}/${MAX_PER_WAVE})`,

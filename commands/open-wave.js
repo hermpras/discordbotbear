@@ -1,13 +1,7 @@
-const {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-} = require("discord.js");
+const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const { readData, writeData, getWaveData } = require("../utils/claimStore");
 const { ROLES, MAX_PER_WAVE } = require("../config/waves");
+const { buildWaveEmbed, buildWaveButtonRow } = require("../utils/panelEmbed");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -47,31 +41,19 @@ module.exports = {
     writeData(data);
 
     const waveData = getWaveData(data, waveNumber);
-    const remaining = MAX_PER_WAVE - waveData.count;
 
-    const embed = new EmbedBuilder()
-      .setTitle(`🎟️ CLAIM YOUR ROLE — WAVE ${waveNumber}`)
-      .setDescription(
-        [
-          "Want to be part of the early HoodBear community?",
-          "",
-          `Click the button below to claim your **Wave ${waveNumber}** role.`,
-          "",
-          `🟢 **Slots remaining: ${remaining}/${MAX_PER_WAVE}**`,
-        ].join("\n"),
-      )
-      .setColor("#273524")
-      .setFooter({ text: "HoodBear • Community Roles" });
+    const embed = buildWaveEmbed(waveNumber, waveData, MAX_PER_WAVE);
+    const button = buildWaveButtonRow(waveNumber);
 
-    const button = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId("claim_wave_role")
-        .setLabel(`Claim Wave ${waveNumber}`)
-        .setEmoji("🟢")
-        .setStyle(ButtonStyle.Success),
-    );
+    const sentMessage = await interaction.channel.send({
+      embeds: [embed],
+      components: [button],
+    });
 
-    await interaction.channel.send({ embeds: [embed], components: [button] });
+    // Remember which message is the live panel, so future claims can edit it
+    data.panelChannelId = sentMessage.channelId;
+    data.panelMessageId = sentMessage.id;
+    writeData(data);
 
     return interaction.reply({
       content: `✅ Wave ${waveNumber} is now active. Panel has been posted.`,
