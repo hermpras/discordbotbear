@@ -4,7 +4,11 @@
   "panelChannelId": null,
   "panelMessageId": null,
   "early": {
-    "count": 0,
-    "claimedUsers": []
+    "count": 3,
+    "claimedUsers": [
+      "427407744518324224",
+      "714163752517369876",
+      "1474385218373681285"
+    ]
   }
 }

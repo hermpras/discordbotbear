@@ -7,7 +7,7 @@ const {
 const { EARLY_ROLE_ID, EARLY_MAX } = require("../config/early");
 
 const MIN_ACCOUNT_AGE_DAYS = 7;
-const MIN_MEMBER_AGE_HOURS = 2;
+const MIN_MEMBER_AGE_HOURS = 0;
 
 let isWriting = false;
 
